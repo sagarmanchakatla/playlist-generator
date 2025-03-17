@@ -8,7 +8,11 @@ app = Flask(__name__)
 CORS(app)
 
 # Load dataset
-df = pd.read_csv("spotify-data.csv")
+# df = pd.read_csv("spotify-data.csv")
+
+# df = pd.read_csv('music_records.csv')
+
+df = pd.read_csv('songs_dataset_with_thumbnails.csv')
 
 # YouTube Data API key
 # API_KEY = 'AIzaSyBe6hKp5D_VNizwr1BvhDxpbbH4IuJWVZ4'
@@ -65,8 +69,8 @@ def generate_playlist(user_mood, favorite_artists, favorite_genre):
         additional_songs = filter_songs(user_mood, favorite_artists, None)
         additional_songs = rank_songs(additional_songs)
         top_songs = pd.concat([top_songs, additional_songs]).drop_duplicates(subset='track_name').head(10)
-
-    return top_songs[['track_name', 'track_artist', 'playlist_genre', 'track_popularity']]
+    print(top_songs.head(10))
+    return top_songs[['track_name', 'track_artist', 'playlist_genre', 'track_popularity', 'YouTube URL', 'Thumbnail_URL']]
 
 def generate_multiple_playlists(user_mood, favorite_artists, favorite_genres):
     playlists = {}
@@ -107,7 +111,8 @@ def generate_playlists():
         playlist_with_urls = []
         playlist_thumbnail = None
         for _, song in playlist.iterrows():
-            youtube_url, thumbnail_url = get_youtube_url_and_thumbnail(song['track_name'], song['track_artist'])
+            # youtube_url, thumbnail_url = get_youtube_url_and_thumbnail(song['track_name'], song['track_artist'])
+            youtube_url, thumbnail_url = song['YouTube URL'], song['Thumbnail_URL']
             playlist_with_urls.append({
                 'track_name': song['track_name'],
                 'track_artist': song['track_artist'],
@@ -119,12 +124,13 @@ def generate_playlists():
             if not playlist_thumbnail:
                 playlist_thumbnail = thumbnail_url
 
+        
         result[genre] = {
             'playlist_thumbnail': playlist_thumbnail,
             'songs': playlist_with_urls
         }
-
+    print(result)
     return jsonify(result)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
